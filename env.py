@@ -41,6 +41,7 @@ class Beam():
         # Environment Dynamics
         self.ACC_GRAV = 386.09 # [in/s^2]
         self.TIME_INTERVAL = 0.25 # [s]
+        self.terminate = False
 
     def step(self, state, action):
 
@@ -64,9 +65,14 @@ class Beam():
         if next_state in self.terminal_states:
             reward = 1
 
+        if next_state not in self.states:
+            reward = -1
+            terminate = TRUE
+        
         # Display Summary
         print("\nStep Summary")
         print("Reward: ",reward)
+        print("Episode Terminated: ",terminate)
         print("----------------------------------------------------")
         print("Inital Position | Inital Velocity | Initial Angle  |")
         print("\t",intial_position, "\t|\t", inital_velocity, "\t  |\t", state[3], "\t   |")
