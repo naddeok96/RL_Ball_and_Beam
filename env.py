@@ -60,8 +60,13 @@ class Beam():
 
         next_state = [intial_position, position, state[2], angle]
 
+        reward = 0
+        if next_state in self.terminal_states:
+            reward = 1
+
         # Display Summary
         print("\nStep Summary")
+        print("Reward: ",reward)
         print("----------------------------------------------------")
         print("Inital Position | Inital Velocity | Initial Angle  |")
         print("\t",intial_position, "\t|\t", inital_velocity, "\t  |\t", state[3], "\t   |")
@@ -69,7 +74,7 @@ class Beam():
         print("\t",position, "\t|\t", velocity, "\t  |\t", angle, "\t   |")
         print("----------------------------------------------------")
 
-        return next_state
+        return next_state, reward
 
     def bin_position(self, position):
         '''
@@ -85,9 +90,10 @@ class Beam():
         '''
         Keep the angle within limits
         '''
-        
+
         if angle > 45:
             angle = 45
         if angle < -45:
             angle = -45
         return angle
+
