@@ -44,11 +44,12 @@ class Beam():
         # Environment Dynamics
         self.ACC_GRAV = 386.09 # [in/s^2]
         self.TIME_INTERVAL = 0.25 # [s]
-        self.terminate = False
+        
 
     def step(self, state, action):
 
-        
+        terminate = False
+
         # Take a time step
         intial_position = state[1]
 
@@ -62,7 +63,7 @@ class Beam():
 
         position = self.bin_position(intial_position + (inital_velocity*self.TIME_INTERVAL) + (0.5*acceleration*(self.TIME_INTERVAL**2)))
 
-        next_state = [intial_position, position, state[2], angle]
+        next_state = [intial_position, position, state[2], int(angle)]
 
         reward = 0
         if next_state in self.terminal_states:
@@ -70,7 +71,7 @@ class Beam():
 
         if next_state not in self.states:
             reward = -1
-            terminate = TRUE
+            terminate = True
         
         # Display Summary
         print("\nStep Summary")
