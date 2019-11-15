@@ -17,8 +17,11 @@ class Beam():
         for i in range(13): # Inital ball location [p0]
             for j in range(13): # Current ball location [p]
                 for k in range(13): # Target ball location [t]
-                    for m in range(16): # Beam angle [ang]
-                        ang = (m*6) - 45
+                    for m in range(17): # Beam angle [ang]
+                        if m == 16:
+                            ang = 0
+                        else:
+                            ang = (m*6) - 45
                         self.states.append([i,j,k,ang])
         print("State Space Size:")
         print(np.shape(self.states))    
@@ -80,7 +83,7 @@ class Beam():
         print("\t",position, "\t|\t", velocity, "\t  |\t", angle, "\t   |")
         print("----------------------------------------------------")
 
-        return next_state, reward
+        return next_state, reward, terminate
 
     def bin_position(self, position):
         '''
