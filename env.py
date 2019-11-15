@@ -50,7 +50,7 @@ class Beam():
 
         inital_velocity = (state[1]-state[0])/self.TIME_INTERVAL
 
-        angle = state[3] + action
+        angle = self.limit_angle(state[3] + action)
 
         acceleration = -self.ACC_GRAV*np.sin(np.deg2rad(angle))
 
@@ -72,9 +72,22 @@ class Beam():
         return next_state
 
     def bin_position(self, position):
-        
+        '''
+        Bin the position
+        '''
+
         bins = np.linspace(0.5, 12.5, 13)
         digitized = np.digitize(position, bins)
 
         return digitized
 
+    def limit_angle(self, angle):
+        '''
+        Keep the angle within limits
+        '''
+        
+        if angle > 45:
+            angle = 45
+        if angle < -45:
+            angle = -45
+        return angle
