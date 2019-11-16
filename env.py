@@ -17,14 +17,14 @@ class Beam():
         for i in range(13): # Inital ball location [p0]
             for j in range(13): # Current ball location [p]
                 for k in range(13): # Target ball location [t]
-                    for m in range(17): # Beam angle [ang]
-                        if m == 16:
+                    for m in range(19): # Beam angle [ang]
+                        if m == 19:
                             ang = 0
                         else:
-                            ang = (m*6) - 45
+                            ang = (m*5) - 45
                         self.states.append([i,j,k,ang])
         print("State Space Size:")
-        print(np.shape(self.states))    
+        print(np.shape(self.states))
 
         # Initialize Starting States
         self.starting_states = []
@@ -49,7 +49,7 @@ class Beam():
     def step(self, state, action):
 
         terminate = False
-
+        
         # Take a time step
         intial_position = state[1]
 
@@ -67,10 +67,10 @@ class Beam():
 
         reward = 0
         if next_state in self.terminal_states:
-            reward = 1
+            reward = 100
 
         if next_state not in self.states:
-            reward = -1
+            reward = -100
             terminate = True
         
         # Display Summary
@@ -90,9 +90,8 @@ class Beam():
         '''
         Bin the position
         '''
-
-        bins = np.linspace(0.5, 12.5, 13)
-        digitized = np.digitize(position, bins)
+        bins = np.linspace(-0.5, 12.5, 14)
+        digitized = np.digitize(position, bins) -1 
 
         return digitized
 
@@ -100,7 +99,6 @@ class Beam():
         '''
         Keep the angle within limits
         '''
-
         if angle > 45:
             angle = 45
         if angle < -45:
