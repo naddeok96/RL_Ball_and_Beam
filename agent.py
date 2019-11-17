@@ -81,7 +81,7 @@ class Balancer():
 
         # Run episode until termination or limit
         iteration = 0
-        while terminate == False and iteration < self.EPISODE_LIMIT:
+        while  iteration < self.EPISODE_LIMIT: #terminate == False and
 
             # Update Iteration
             iteration += 1
@@ -104,14 +104,18 @@ class Balancer():
                                                      self.EPISODE_LIMIT)
 
             # Compute Current Returns
-            if str(state) in self.policy.keys():
+            if str(inital_state) in state_returns.keys():
                 state_returns[str(inital_state)] += (self.GAMMA**iteration)*(reward)
-                state_action_returns[str(inital_state + [inital_action])] += (self.GAMMA**iteration)*(reward)
             else:
                 state_returns[str(inital_state)] = (self.GAMMA**iteration)*(reward)
+
+            if str(inital_state + [inital_action]) in state_action_returns.keys():
+                
+                state_action_returns[str(inital_state + [inital_action])] += (self.GAMMA**iteration)*(reward)
+            else:
                 state_action_returns[str(inital_state + [inital_action])] = (self.GAMMA**iteration)*(reward)
 
-            history.append([inital_state + [inital_action] + [reward] + state + [action]]) # SARSA
+            history.append(inital_state + [inital_action] + [reward] + state + [action]) # SARSA
 
         # Display History
         print("\nHistory: ")

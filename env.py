@@ -86,7 +86,7 @@ class Beam():
 
         self.position = self.intial_position + (self.inital_velocity*self.TIME_INTERVAL) + (0.5*acceleration*(self.TIME_INTERVAL**2))
 
-        next_state = [state[0], self.bin_position(self.position), state[2], int(angle)]
+        next_state = [state[0], int(self.bin_position(self.position)), state[2], int(angle)]
 
         reward = -1
         if next_state in self.terminal_states:
