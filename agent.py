@@ -7,6 +7,7 @@ import numpy as np
 import random
 import itertools
 from statistics import mean
+from silence import shh
 
 class Balancer():
 
@@ -56,81 +57,73 @@ class Balancer():
         self.n_episodes += 1
 
         print("\nEpisode",self.n_episodes, "Summary")
-        print("====================================================")
+        print("========================================================================================================================")
 
         # Choose a random starting state 
         state = random.choice(self.env.starting_states)
 
         # Compute action given state
-        if str(state) in self.policy.keys():
-            action = self.policy[str(state)]
-        else:
-            action = random.choice(self.actions)
-            self.policy[str(state)] = action
+        action = self.getPolicy(self.policy, str(state))
         
-        # Reset the termination indicator to false
+        # Reset everything
         terminate = False
-
-        # Initalize the history
-        history = []
-
-        # Reset returns
+        history = {}
         state_returns = {}
         state_action_returns = {}
         reward = 0
-
-        # Run episode until termination or limit
         iteration = 0
         while  iteration < self.EPISODE_LIMIT: #terminate == False and
 
             # Update Iteration
             iteration += 1
 
+            # Take one step
+            with shh(): # shh() suppresses print outs from calls
+                inital_state = state
+                state, reward, terminate = self.env.step(state, 
+                                                        action, 
+                                                        True if iteration == 1 else False, # Episode Reset
+                                                        self.EPISODE_LIMIT)
+
             # Compute action given state
             inital_action = action
-            if str(state) in self.policy.keys():
-                action = self.policy[str(state)]
-            else:
-                action = random.choice(self.actions)
-                self.policy[str(state)] = action
-
-            
-            # Take one step
-            #with shh(): # shh() suppresses print outs from calls
-            inital_state = state
-            state, reward, terminate = self.env.step(state, 
-                                                     action, 
-                                                     True if iteration == 1 else False, # Episode Reset
-                                                     self.EPISODE_LIMIT)
+            action = self.getPolicy(self.policy, str(state))
 
             # Compute Current Returns
-            if str(inital_state) in state_returns.keys():
-                state_returns[str(inital_state)] += (self.GAMMA**iteration)*(reward)
-            else:
-                state_returns[str(inital_state)] = (self.GAMMA**iteration)*(reward)
+            self.setReturn(state_returns, str(state), (self.GAMMA**iteration)*reward)
+            self.setReturn(state_action_returns, str(state + [action]), (self.GAMMA**iteration)*reward)
 
-            if str(inital_state + [inital_action]) in state_action_returns.keys():
-                
-                state_action_returns[str(inital_state + [inital_action])] += (self.GAMMA**iteration)*(reward)
-            else:
-                state_action_returns[str(inital_state + [inital_action])] = (self.GAMMA**iteration)*(reward)
-
-            history.append(inital_state + [inital_action] + [reward] + state + [action]) # SARSA
+            history["Step " + str(iteration)] = {'Inital State': inital_state,
+                                                 'Inital Action': inital_action,
+                                                 'Reward': reward,
+                                                 'Current State': state,
+                                                 'Current Action': action}
+            
 
         # Display History
-        print("\nHistory: ")
-        print("State(Inital Position, Current Position, Target Position, Angle), Action, Reward, Next State, Next Action")
-        print(history)
-        print("--------------------------------")
+        print("\nHistory: (states are of [p0,p,t,angle])")
 
-        # Find Unique History        
-        history.sort()
-        unique_history = list(history for history,_ in itertools.groupby(history))
-        print("Unique States Visited: ")
-        print(unique_history)
-        print("--------------------------------")
-        print("====================================================\n")
-
+        for i in range(iteration):
+            print("Step " + str(i+1))
+            print(history["Step " + str(i+1)])
+        print("========================================================================================================================")
 
         return history
+
+    def setReturn(self,return_func, key,value):
+
+        if key in return_func.keys():
+            return_func[key] += value
+        else:
+            return_func[key] = value
+
+    def getPolicy(self,policy,key):
+
+        if key in policy.keys():
+            action = policy[key]
+        else:
+            action = random.choice(self.actions)
+            policy[key] = action
+
+        return action
 
