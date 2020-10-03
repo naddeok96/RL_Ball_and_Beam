@@ -148,7 +148,7 @@ class BeamEnv(gym.Env):
         self._take_action(action)
 
         # Determine Success
-        if (self.target_location == self.ball_location) & (round(self.ball_velocity, 3) == 0) & (round(self.beam_angle, 3) == 0):
+        if (round(abs((self.target_location - self.ball_location)),3) == 0) & (round(self.ball_velocity, 3) == 0) & (round(self.beam_angle, 3) == 0):
             done = True
         else:
             done = False
