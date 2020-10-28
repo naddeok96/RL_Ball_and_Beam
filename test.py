@@ -4,9 +4,9 @@ from env.BeamEnv import BeamEnv
 from q_learning_agent import QLearner
 
 # Hyperparameters
-save_q_table = False
+save_q_table = True
 gpu = True
-NUMBER_OF_EPISODES = 1e2
+NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 1000
 EPSILON   = 0.2
 
@@ -23,7 +23,7 @@ agent = QLearner(env)
 # Train
 num_successes = 0
 for episode in range(int(NUMBER_OF_EPISODES)):
-    if episode % (NUMBER_OF_EPISODES / 10) == 0:
+    if episode % (NUMBER_OF_EPISODES / 100) == 0:
         print("Episode: " + str(episode))
 
     # Reset Environment
