@@ -23,7 +23,7 @@ agent = QLearner(env)
 # Train
 num_successes = 0
 for episode in range(int(NUMBER_OF_EPISODES)):
-    if episode % (NUMBER_OF_EPISODES/10) == 0:
+    if episode % 1e4 == 0:
         print("Episode: " + str(episode))
 
     # Reset Environment
