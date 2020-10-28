@@ -68,11 +68,12 @@ class QLearner():
         Returns:
             tuple: binned state
         """
-
+        # Determine closest bin for raw observation
         binned_state = []
         for i in range(4):
             binned_state.append(self.env.obs[i][np.abs(self.env.obs[i] - raw_state[i]).argmin()])
 
+        # Convert to tuple and return
         return tuple(binned_state)
 
     def get_action(self, state):
