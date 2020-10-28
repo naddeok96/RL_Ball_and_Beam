@@ -4,17 +4,10 @@ from env.BeamEnv import BeamEnv
 from q_learning_agent import QLearner
 
 # Hyperparameters
-gpu = True
 save_q_table = True
 NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 1000
 EPSILON   = 0.2
-
-# Push to GPU if necessary
-if gpu == True:
-    import os
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 # Initialize Environment and Agent
 env   = BeamEnv()
