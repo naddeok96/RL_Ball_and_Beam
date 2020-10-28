@@ -4,6 +4,7 @@ from env.BeamEnv import BeamEnv
 from q_learning_agent import QLearner
 
 # Hyperparameters
+gpu = True
 save_q_table = True
 NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 1000
