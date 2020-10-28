@@ -6,7 +6,7 @@ from q_learning_agent import QLearner
 # Hyperparameters
 save_q_table = True
 gpu = True
-NUMBER_OF_EPISODES = 1e10
+NUMBER_OF_EPISODES = 1000
 MAX_STEPS = 1000
 EPSILON   = 0.2
 
@@ -23,8 +23,8 @@ agent = QLearner(env)
 # Train
 num_successes = 0
 for episode in range(int(NUMBER_OF_EPISODES)):
-    if episode % (NUMBER_OF_EPISODES / 100) == 0:
-        print("Episode: " + str(episode))
+    # if episode % (NUMBER_OF_EPISODES / 100) == 0:
+    print("Episode: " + str(episode))
 
     # Reset Environment
     state = env.reset()
@@ -32,7 +32,7 @@ for episode in range(int(NUMBER_OF_EPISODES)):
     # Experience 
     done = False
     count = 0
-    while (not done) and (count > MAX_STEPS):
+    while (not done) and (count < MAX_STEPS):
 
         # Choose next action (EPSILON-Greedy)
         action = env.action_space.sample() if np.random.uniform(0, 1) < EPSILON else agent.get_action(state)
