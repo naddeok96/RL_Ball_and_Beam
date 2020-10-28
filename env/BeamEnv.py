@@ -5,8 +5,9 @@ import random
 
 class BeamEnv(gym.Env):
 
-    def __init__(self, obs_low_bounds  = np.array([ 0,  0, "TBD", -45]),
-                       obs_high_bounds = np.array([12, 12, "TBD",  45])):
+    def __init__(self, obs_low_bounds  = np.array([  0,   0,  1.18e10, -45]),
+                       obs_high_bounds = np.array([ 12,  12, -1.18e10,  45]), 
+                       obs_bin_sizes   = np.array([0.5, 0.5,        6,   5])):
         """Environment for a ball and beam system where agent has control of tilt.
 
         Args:
@@ -17,22 +18,35 @@ class BeamEnv(gym.Env):
         super(BeamEnv, self).__init__()
 
         # Hyperparameters
-        self.ACC_GRAV    = 386.22  # [in/s]
+        self.ACC_GRAV    = 386.22  # [in/s2]
         self.MOTOR_SPEED = 46.875  # 1.28[sec/60deg] converted to [deg/s]
         self.TIME_STEP   = 0.1     # [s]
 
-        # Observation Space 
-        #  _bounds = []
+        # Declare bounds of observations
         self.obs_low_bounds  = obs_low_bounds
         self.obs_high_bounds = obs_high_bounds
-        self._determine_max_velocity()
-        self.observation_space = gym.spaces.Box(low = self.obs_low_bounds,
-                                                high = self.obs_high_bounds,
-                                                dtype = np.float32)
+        self._set_velocity_bounds()
+
+        # Declare bin sizes of observations
+        self.obs_bin_sizes   = obs_bin_sizes
+        
+        # Bin observations
+        self.obs = []
+        self.obs_sizes = []
+        for i in range(4):
+            self.obs.append(np.sort(
+                            np.append(
+                            np.arange(self.obs_low_bounds[i], self.obs_high_bounds[i] + self.obs_bin_sizes[i], self.obs_bin_sizes[i]), 
+                            0)))
+
+            self.obs_sizes.append(len(self.obs[i]))
+        
+        # Declare observation space
+        self.observation_space = gym.spaces.MultiDiscrete(self.obs_sizes)
 
         # Action Space
         # increase, decrease or keep current angle
-        self.action_space = gym.spaces.Descrete(3)
+        self.action_space = gym.spaces.Discrete(3)
 
         # Reward Range
         self.reward_range = (-1, 1)
@@ -51,7 +65,7 @@ class BeamEnv(gym.Env):
         a_max = self.ACC_GRAV * np.sin(np.deg2rad(ang_max))
 
         # Max Velocity (vf^2 = v0^2 + 2ad)
-        vel_max = np.sqrt(2*a_max*distance_max)
+        vel_max = round(np.sqrt(2*a_max*distance_max))
 
         # Set Bounds
         self.obs_low_bounds[2]  = -vel_max
@@ -71,22 +85,14 @@ class BeamEnv(gym.Env):
         """
         
         # Set target location
-        if target_location is not None:
-            self.target_location = target_location
-        else:
-            possible_targets = list(range(self.obs_low_bounds[0], self.obs_high_bounds[0]))
-            self.target_location = random.choice(possible_targets)
+        self.target_location = target_location if target_location is not None else random.choice(self.obs[0])
 
         # Set ball location
-        if ball_location is not None:
-            self.ball_location = ball_location
-        else:
-            possible_ball_locations = list(range(self.obs_low_bounds[1], self.obs_high_bounds[1]))
-            self.ball_location = random.choice(possible_ball_locations)
+        self.ball_location = ball_location if ball_location is not None else random.choice(self.obs[1])
 
         # Set Intial Velocity and Angle to Zero
-        self.ball_velocity = 0 # [in/s]
-        self.beam_angle    = 0 # [deg]
+        self.ball_velocity = 0.0 # [in/s]
+        self.beam_angle    = 0.0 # [deg]
 
         return self._next_observation()
 
@@ -94,7 +100,7 @@ class BeamEnv(gym.Env):
         """Determines what will happen in the next time step
 
         Returns:
-            list: observation of (target location, ball location, ball velocity, beam angle)
+            tuple: observation of (target location, ball location, ball velocity, beam angle)
         """
         # Calculate Acceleration (Inclined Plane Equation)
         ball_acceleration = self.ACC_GRAV * np.sin(np.deg2rad(self.beam_angle))
@@ -116,7 +122,7 @@ class BeamEnv(gym.Env):
                                      self.obs_low_bounds[2])
 
         # Return Observation
-        return [self.target_location, self.ball_location, self.ball_velocity, self.beam_angle]    
+        return (self.target_location, self.ball_location, self.ball_velocity, self.beam_angle)
 
     def _take_action(self,action):
         """Determines change in angle due to action
@@ -135,7 +141,7 @@ class BeamEnv(gym.Env):
                                      self.obs_high_bounds[3]),
                                      self.obs_low_bounds[3])
 
-    def step(self, action):
+    def step(self, state, action):
         """Take action, collect reward and get new observation
 
         Args:
@@ -160,7 +166,7 @@ class BeamEnv(gym.Env):
         obs = self._next_observation()
 
         # Return what happened
-        return obs, reward, done, {}
+        return obs, reward, done
 
 
 
