@@ -7,7 +7,7 @@ from q_learning_agent import QLearner
 save_q_table = True
 gpu = True
 NUMBER_OF_EPISODES = 1000
-MAX_STEPS = 1000
+MAX_STEPS = 300
 EPSILON   = 0.2
 
 # Push to GPU if necessary
