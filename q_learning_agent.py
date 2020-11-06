@@ -9,7 +9,7 @@ class QLearner():
                        learning_rate = 0.60,
                        discount_factor = 0.9, 
                        pretrained_q_table = None):
-        """Tradition Q Learning Agent where Q-Table is discrete
+        """Traditional Q Learning Agent where Q-Table is discrete
 
         Args:
             env (OpenAI type env): enviornment of agent
