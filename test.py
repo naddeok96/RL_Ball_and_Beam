@@ -4,11 +4,12 @@ from env.BeamEnv import BeamEnv
 from q_learning_agent import QLearner
 
 # Hyperparameters
-save_q_table = True
-gpu = True
-NUMBER_OF_EPISODES = 1e10
+save_q_table = False
+gpu = False
+NUMBER_OF_EPISODES = 100
 MAX_STEPS = 200
-EPSILON   = 0.2
+EPSILON   = 0
+pretrained_q_table = np.loadtxt('pretrained_q_tables/q_table_11_6.csv', delimiter=',')
 
 # Push to GPU if necessary
 if gpu == True:
@@ -18,13 +19,17 @@ if gpu == True:
 
 # Initialize Environment and Agent
 env   = BeamEnv()
-agent = QLearner(env)
+agent = QLearner(env, 
+                 pretrained_q_table = pretrained_q_table)
 
 # Train
 num_successes = 0
 for episode in range(int(NUMBER_OF_EPISODES)):
-    if episode % (NUMBER_OF_EPISODES / 100) == 0:
+    if episode % (1e3) == 0:
         print("Episode: " + str(episode))
+
+        if save_q_table:
+            np.savetxt('q_table.csv', agent.q_table, delimiter = "," )
 
     # Reset Environment
     state = env.reset()
