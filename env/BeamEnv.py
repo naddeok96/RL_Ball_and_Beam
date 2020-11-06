@@ -38,15 +38,15 @@ class BeamEnv(gym.Env):
         self.obs_bin_sizes   = obs_bin_sizes
         
         # Bin observations
-        self.obs = []
+        self.binned_obs = []
         self.obs_sizes = []
         for i in range(4):
-            self.obs.append(np.sort(
+            self.binned_obs.append(np.sort(
                             np.append(
                             np.arange(self.obs_low_bounds[i], self.obs_high_bounds[i] + self.obs_bin_sizes[i], self.obs_bin_sizes[i]), 
                             0)))
 
-            self.obs_sizes.append(len(self.obs[i]))
+            self.obs_sizes.append(len(self.binned_obs[i]))
         
         # Declare observation space
         self.observation_space = gym.spaces.MultiDiscrete(self.obs_sizes)
@@ -177,10 +177,10 @@ class BeamEnv(gym.Env):
         
         # Set target location
         self.fig = None
-        self.target_location = target_location if target_location is not None else random.choice(self.obs[0])
+        self.target_location = target_location if target_location is not None else random.choice(self.binned_obs[0])
 
         # Set ball location
-        self.ball_location = ball_location if ball_location is not None else random.choice(self.obs[1])
+        self.ball_location = ball_location if ball_location is not None else random.choice(self.binned_obs[1])
 
         # Set Intial Velocity and Angle to Zero
         self.ball_velocity = 0.0 # [in/s]
@@ -243,10 +243,12 @@ class BeamEnv(gym.Env):
         plt.savefig(path + str(self.step_counter) + my_file)
 
     def step(self, state, action, render=False):
-        """Take action, collect reward and get new observation
+        """Take action then collect reward and get new observation
 
         Args:
+            state (tuple): current state
             action (int): increase, decrease or keep current angle
+            render (bool, optional): If True beam is displayed. Defaults to False
 
         Returns:
             tuple: (observation, reward, done, info)
@@ -255,10 +257,11 @@ class BeamEnv(gym.Env):
         self._take_action(action)
 
         # Determine Success
-        if (round(abs((self.target_location - self.ball_location)),3) == 0) & (round(self.ball_velocity, 3) == 0) & (round(self.beam_angle, 3) == 0):
-            done = True
-        else:
-            done = False
+        ball_is_on_target = (round(abs((self.target_location - self.ball_location)),3) == 0)
+        ball_is_stopped   = (round(self.ball_velocity, 3) == 0)
+        beam_is_level     = (round(self.beam_angle, 3) == 0)
+
+        done = True if ball_is_on_target & ball_is_stopped & beam_is_level else False
 
         # Find Reward
         reward = 1 if done else -1
