@@ -2,6 +2,13 @@
 import gym
 import numpy as np
 import random
+import matplotlib as mpl
+from matplotlib import axes
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon
+import math
+import os
+
 
 class BeamEnv(gym.Env):
 
@@ -31,15 +38,15 @@ class BeamEnv(gym.Env):
         self.obs_bin_sizes   = obs_bin_sizes
         
         # Bin observations
-        self.binned_obs = []
+        self.obs = []
         self.obs_sizes = []
         for i in range(4):
-            self.binned_obs.append(np.sort(
+            self.obs.append(np.sort(
                             np.append(
                             np.arange(self.obs_low_bounds[i], self.obs_high_bounds[i] + self.obs_bin_sizes[i], self.obs_bin_sizes[i]), 
                             0)))
 
-            self.obs_sizes.append(len(self.binned_obs[i]))
+            self.obs_sizes.append(len(self.obs[i]))
         
         # Declare observation space
         self.observation_space = gym.spaces.MultiDiscrete(self.obs_sizes)
@@ -48,8 +55,92 @@ class BeamEnv(gym.Env):
         # increase, decrease or keep current angle
         self.action_space = gym.spaces.Discrete(3)
 
-        # Reward Range
+        # Increments each time after receiving reward
+        self.step_counter = 0
+
+        # Set number of export frames
+        self.sample_freq = 10
+        
+        # Set the reward_range if you want a narrower range
+        # Defaults to [-inf,+inf]
         self.reward_range = (-1, 1)
+   
+    
+    def _init_plt(self):
+        """Visualizes a plot using Matplotlib.   
+        """
+
+        plt.style.use('dark_background')
+
+        if self.fig: return
+        plt.close()
+
+        # Create a figure on the screen
+        fig = plt.figure(figsize = (5, 5))
+        self.fig = fig
+        axes = plt.axes(xlim = (-5, 20), ylim = (0, 30))
+
+        # Set the aspect of the axis scaling
+        axes.set_aspect('equal')
+        self.axes = axes
+
+        #Plot a circle to illustrate the ball
+        circle = plt.Circle((self.ball_location, 15), radius = 0.75, ec ='#c77dff', fc ='#c77dff')
+        self.circle = circle
+        # Return the figure element patch
+        axes.add_patch(circle)
+        
+        #Plot a rectangle to illustrate the beam
+        rect = plt.Rectangle((-3, 14.97), width = 20, height = 0.25, ec = '#adb5bd', fc = '#adb5bd')
+        self.rect = rect
+        axes.add_patch(rect)
+
+        # Set x coord to the target location
+        x = self.target_location
+        a = 1.5
+        
+        # Calculate target coordinates [x, b], [x - a, b], [x + a, b]
+        pivot = plt.Polygon([[x, 15], [x - a, 12], [x + a, 12]], fc = '#adb5bd')
+        axes.add_patch(pivot)
+
+        plt.show(block = False)
+        plt.pause(0.10)
+
+    def _render(self, obs):
+        """Renders a 2D environment.
+        Args:
+            obs (int): The number of possible discrete actions.
+        """
+
+        # Draw the figure
+        self.fig.canvas.draw()
+        
+        # Set the initial horizontal position of the ball
+        ball_loc = obs[1]
+       
+        # Calculate the new y position
+        new_y = math.tan(-math.radians(obs[3])) * (ball_loc - self.target_location)
+
+        # Set the center of the circle (x, y, radius)
+        self.circle.center = (ball_loc, 15 + new_y + 1)
+        
+        # Convert data coordinates to display coordinates
+        ts = self.axes.transData
+        xy = (self.target_location, 15)
+
+        # Set data coordinate system
+        # Transform ensures the plot will be correct
+        coords = ts.transform(xy)
+        
+        # Image rotation
+        tr = mpl.transforms.Affine2D().rotate_deg_around(coords[0], coords[1], -obs[3])
+        
+        # Transform to display coordinates then rotate
+        t = ts + tr
+        # t is the Transform
+        self.rect.set_transform(t)
+        plt.pause(0.10)
+
 
     def _set_velocity_bounds(self):
         """Use Inclined Plane and Kinematics Formulas 
@@ -82,18 +173,21 @@ class BeamEnv(gym.Env):
 
         Returns:
             list: observation of (target location, ball location, ball velocity, beam angle)
-        """        
+        """
+        
         # Set target location
-        self.target_location = target_location if target_location is not None else random.choice(self.binned_obs[0])
+        self.fig = None
+        self.target_location = target_location if target_location is not None else random.choice(self.obs[0])
 
         # Set ball location
-        self.ball_location = ball_location if ball_location is not None else random.choice(self.binned_obs[1])
+        self.ball_location = ball_location if ball_location is not None else random.choice(self.obs[1])
 
         # Set Intial Velocity and Angle to Zero
         self.ball_velocity = 0.0 # [in/s]
         self.beam_angle    = 0.0 # [deg]
 
-        return self._next_observation()
+        obs = self._next_observation()
+        return obs
 
     def _next_observation(self):
         """Determines what will happen in the next time step
@@ -140,11 +234,18 @@ class BeamEnv(gym.Env):
                                      self.obs_high_bounds[3]),
                                      self.obs_low_bounds[3])
 
-    def step(self, state, action):
-        """Take action then collect reward and get new observation
+    def export_frames(self):
+        """ Saves samples of the environment frames.
+        """
+        path = 'samples/'
+        os.path.abspath(__file__)
+        my_file = '.png'
+        plt.savefig(path + str(self.step_counter) + my_file)
+
+    def step(self, state, action, render=False):
+        """Take action, collect reward and get new observation
 
         Args:
-            state (tuple): current state
             action (int): increase, decrease or keep current angle
 
         Returns:
@@ -154,10 +255,7 @@ class BeamEnv(gym.Env):
         self._take_action(action)
 
         # Determine Success
-        is_ball_on_target = (round(abs((self.target_location - self.ball_location)),3) == 0)
-        is_ball_stopped   = (round(self.ball_velocity, 3) == 0)
-        is_beam_level     = (round(self.beam_angle, 3) == 0)
-        if is_ball_on_target & is_ball_stopped & is_beam_level:
+        if (round(abs((self.target_location - self.ball_location)),3) == 0) & (round(self.ball_velocity, 3) == 0) & (round(self.beam_angle, 3) == 0):
             done = True
         else:
             done = False
@@ -167,6 +265,12 @@ class BeamEnv(gym.Env):
 
         # Find Next Observation
         obs = self._next_observation()
-
-        # Return what happened
+        
+        # Terminate rendering 
+        if render:
+            self.step_counter += 1
+            self._init_plt()
+            self._render(obs)
+            if self.step_counter % self.sample_freq == 0:
+                self.export_frames()
         return obs, reward, done
