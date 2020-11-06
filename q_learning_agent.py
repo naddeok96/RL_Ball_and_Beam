@@ -43,7 +43,7 @@ class QLearner():
         # Load all possible feature observations into a list
         state_feature_permutations = []
         for i in range(4):
-            state_feature_permutations.append(list(self.env.obs[i]))
+            state_feature_permutations.append(list(self.env.binned_obs[i]))
 
         # Compute all possible observations
         self.state_permutations = list(itertools.product(*state_feature_permutations))
@@ -71,7 +71,7 @@ class QLearner():
         # Determine closest bin for raw observation
         binned_state = []
         for i in range(4):
-            binned_state.append(self.env.obs[i][np.abs(self.env.obs[i] - raw_state[i]).argmin()])
+            binned_state.append(self.env.binned_obs[i][np.abs(self.env.binned_obs[i] - raw_state[i]).argmin()])
 
         # Convert to tuple and return
         return tuple(binned_state)
