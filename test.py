@@ -2,15 +2,29 @@
 from env.BeamEnv import BeamEnv
 from q_learning_agent import QLearner
 import numpy as np
+from prettytable import PrettyTable, ALL
 
 # Hyperparameters
 save_q_table = True
-gpu = False
+filename = 'q_table_small.csv'
+gpu = True
 render = False
 NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 150
 EPSILON   = 0.1
+SAVE_EVERY_N_EPISODES = 500
 # pretrained_q_table = np.loadtxt('pretrained_q_tables/q_table_11_6.csv', delimiter=',')
+
+# Display
+table = PrettyTable(["Hyperparameter", "Setting"],
+                    hrules = ALL)
+table.add_row(["Save Q-Table:", save_q_table])
+table.add_row(["Use GPU: ", gpu])
+table.add_row(["Render Episodes: ", render])
+table.add_row(["Number of Episodes: ", NUMBER_OF_EPISODES])
+table.add_row(["Max Steps per Episode: ", MAX_STEPS])
+table.add_row(["Percentage of Exploration: ", str(EPSILON*100) + "\b%"])
+print(table)
 
 # Push to GPU if necessary
 if gpu == True:
@@ -31,11 +45,11 @@ agent = QLearner(env,
 # Train
 num_successes = 0
 for episode in range(int(NUMBER_OF_EPISODES)):
-    if episode % (500) == 0:
-        print("Episode: " + str(episode))
+    if episode % (SAVE_EVERY_N_EPISODES) == 0:
+        print("Episode: " + str(episode) + " Number of Successes: " + str(num_successes))
 
         if save_q_table:
-            np.savetxt('q_table.csv', agent.q_table, delimiter = "," )
+            np.savetxt(filename, agent.q_table, delimiter = "," )
 
     # Reset Environment
     state = env.reset()
@@ -66,4 +80,4 @@ for episode in range(int(NUMBER_OF_EPISODES)):
 print(str(num_successes) + " successes out of " + str(NUMBER_OF_EPISODES) + " episodes." )
 
 if save_q_table:
-    np.savetxt('q_table_small.csv', agent.q_table, delimiter = "," )
+    np.savetxt(filename, agent.q_table, delimiter = "," )
