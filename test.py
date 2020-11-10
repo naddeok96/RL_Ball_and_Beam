@@ -15,7 +15,7 @@ EPSILON   = 0.1
 if gpu == True:
     import os
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # Initialize Environment and Agent
 env   = BeamEnv(obs_low_bounds  = np.array([0,   0,  1.18e10, -30]),
