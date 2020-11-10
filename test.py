@@ -5,7 +5,7 @@ import numpy as np
 
 # Hyperparameters
 save_q_table = True
-gpu = True
+gpu = False
 render = False
 NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 150
