@@ -6,6 +6,7 @@ import numpy as np
 # Hyperparameters
 save_q_table = True
 gpu = True
+render = False
 NUMBER_OF_EPISODES = 1e10
 MAX_STEPS = 150
 EPSILON   = 0.1
@@ -47,7 +48,7 @@ for episode in range(int(NUMBER_OF_EPISODES)):
         action = env.action_space.sample() if np.random.uniform(0, 1) < EPSILON else agent.get_action(state)
 
         # Next Step
-        next_state, reward, done = env.step(state, action, render = True)
+        next_state, reward, done = env.step(state, action, render = render)
 
         # Count Successes
         if done:
