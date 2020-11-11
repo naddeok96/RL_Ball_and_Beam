@@ -6,24 +6,27 @@ from prettytable import PrettyTable, ALL
 
 # Hyperparameters
 save_q_table = True
-filename = 'q_table_small.csv'
+filename = 'q_table_small2'
 gpu = True
 render = False
 NUMBER_OF_EPISODES = 1e10
-MAX_STEPS = 150
-EPSILON   = 0.1
-SAVE_EVERY_N_EPISODES = 500
-# pretrained_q_table = np.loadtxt('pretrained_q_tables/q_table_11_6.csv', delimiter=',')
+SAVE_EVERY_N_EPISODES = 1000
+
+TIME_STEP = 0.01
+MAX_TIME  = 10
+MAX_STEPS = MAX_TIME / TIME_STEP
+EPSILON   = 10 / MAX_STEPS
+# pretrained_q_table = np.loadtxt('pretrained_q_tables/q_table_small.csv', delimiter=',')
 
 # Display
-table = PrettyTable(["Hyperparameter", "Setting"],
-                    hrules = ALL)
-table.add_row(["Save Q-Table:", save_q_table])
-table.add_row(["Use GPU: ", gpu])
-table.add_row(["Render Episodes: ", render])
-table.add_row(["Number of Episodes: ", NUMBER_OF_EPISODES])
-table.add_row(["Max Steps per Episode: ", MAX_STEPS])
-table.add_row(["Percentage of Exploration: ", str(EPSILON*100) + "\b%"])
+table = PrettyTable(["Hyperparameters", "Settings"])
+
+table.add_row(["Use GPU", gpu])
+table.add_row(["Save Q-Table", save_q_table])
+table.add_row(["Render Episodes", render])
+table.add_row(["Number of Episodes", NUMBER_OF_EPISODES])
+table.add_row(["Max Steps per Episode", MAX_STEPS])
+table.add_row(["Explorations per Episode", str(EPSILON * MAX_STEPS)])
 print(table)
 
 # Push to GPU if necessary
@@ -33,23 +36,30 @@ if gpu == True:
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # Initialize Environment and Agent
-env   = BeamEnv(obs_low_bounds  = np.array([0,   0,  1.18e10, -30]),
-                obs_high_bounds = np.array([6,   6, -1.18e10,  30]), 
-                obs_bin_sizes   = np.array([1, 0.5,        6,   5]))
+env   = BeamEnv(obs_low_bounds  = np.array([0,     0,  1.18e10, -30]),
+                obs_high_bounds = np.array([6,     6, -1.18e10,  30]), 
+                obs_bin_sizes   = np.array([1,  0.25,      20,   5]),
+                TIME_STEP = TIME_STEP)
 
 agent = QLearner(env, 
                  learning_rate = 0.20,
-                 discount_factor = 0.80,
+                 discount_factor = 0.95,
                  pretrained_q_table = None)
 
 # Train
 num_successes = 0
+percent_of_successes = []
 for episode in range(int(NUMBER_OF_EPISODES)):
+
+    # Save Q- Table
     if episode % (SAVE_EVERY_N_EPISODES) == 0:
-        print("Episode: " + str(episode) + " Number of Successes: " + str(num_successes))
+        print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES))
+        percent_of_successes.append(num_successes/SAVE_EVERY_N_EPISODES)
+        num_successes = 0
 
         if save_q_table:
-            np.savetxt(filename, agent.q_table, delimiter = "," )
+            np.savetxt(filename + ".csv", agent.q_table, delimiter = "," )
+            np.savetxt(filename + "_performance.csv", percent_of_successes, delimiter = "," )
 
     # Reset Environment
     state = env.reset()
@@ -77,7 +87,12 @@ for episode in range(int(NUMBER_OF_EPISODES)):
         # Update counter
         count += 1
 
-print(str(num_successes) + " successes out of " + str(NUMBER_OF_EPISODES) + " episodes." )
+# Save Q- Table
+if episode % (SAVE_EVERY_N_EPISODES) == 0:
+    print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES))
+    percent_of_successes.append(num_successes/SAVE_EVERY_N_EPISODES)
+    num_successes = 0
 
-if save_q_table:
-    np.savetxt(filename, agent.q_table, delimiter = "," )
+    if save_q_table:
+        np.savetxt(filename + ".csv", agent.q_table, delimiter = "," )
+        np.savetxt(filename + "_performance.csv", percent_of_successes, delimiter = "," )
