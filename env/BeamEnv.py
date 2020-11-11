@@ -14,7 +14,8 @@ class BeamEnv(gym.Env):
 
     def __init__(self, obs_low_bounds  = np.array([  0,   0,  1.18e10, -45]),
                        obs_high_bounds = np.array([ 12,  12, -1.18e10,  45]), 
-                       obs_bin_sizes   = np.array([0.5, 0.5,        6,   5])):
+                       obs_bin_sizes   = np.array([0.5, 0.5,        6,   5]),
+                       TIME_STEP   = 0.1):
         """Environment for a ball and beam system where agent has control of tilt.
 
         Args:
@@ -27,7 +28,7 @@ class BeamEnv(gym.Env):
         # Hyperparameters
         self.ACC_GRAV    = 386.22  # [in/s2]
         self.MOTOR_SPEED = 46.875  # 1.28[sec/60deg] converted to [deg/s]
-        self.TIME_STEP   = 0.1     # [s]
+        self.TIME_STEP   = TIME_STEP # [s]
 
         # Declare bounds of observations
         self.obs_low_bounds  = obs_low_bounds
