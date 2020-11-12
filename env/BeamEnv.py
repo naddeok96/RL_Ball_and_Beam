@@ -140,7 +140,7 @@ class BeamEnv(gym.Env):
         t = ts + tr
         # t is the Transform
         self.rect.set_transform(t)
-        plt.pause(0.10)
+        plt.pause(self.TIME_STEP)
 
 
     def _set_velocity_bounds(self):
