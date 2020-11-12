@@ -6,16 +6,16 @@ from prettytable import PrettyTable, ALL
 
 # Hyperparameters
 save_q_table = True
-filename = 'q_table_small2'
+filename = 'q_table_epsilon'
 gpu = True
 render = False
 NUMBER_OF_EPISODES = 1e10
 SAVE_EVERY_N_EPISODES = 1000
 
-TIME_STEP = 0.25
+TIME_STEP = 0.1
 MAX_TIME  = 15
 MAX_STEPS = MAX_TIME / TIME_STEP
-EPSILON   = 1 / MAX_STEPS
+epsilons = [0, 0.001, 0.01, 0.1, 0.25]
 pretrained_q_table = np.loadtxt('q_table_small2.csv', delimiter=',')
 
 # Display
@@ -26,7 +26,7 @@ table.add_row(["Save Q-Table", save_q_table])
 table.add_row(["Render Episodes", render])
 table.add_row(["Number of Episodes", NUMBER_OF_EPISODES])
 table.add_row(["Max Steps per Episode", MAX_STEPS])
-table.add_row(["Explorations per Episode", str(EPSILON * MAX_STEPS)])
+table.add_row(["Possible Epsilons per Batch", str(epsilons)])
 print(table)
 
 # Push to GPU if necessary
@@ -38,22 +38,24 @@ if gpu == True:
 # Initialize Environment and Agent
 env   = BeamEnv(obs_low_bounds  = np.array([0,     0,  1.18e10, -30]),
                 obs_high_bounds = np.array([6,     6, -1.18e10,  30]), 
-                obs_bin_sizes   = np.array([1,  0.25,      20,   5]),
+                obs_bin_sizes   = np.array([1,  0.25,        2,   2]),
                 TIME_STEP = TIME_STEP)
 
 agent = QLearner(env, 
                  learning_rate   = 0.01,
-                 discount_factor = 0.95,
+                 discount_factor = 0.975,
                  pretrained_q_table = None)
 
 # Train
 num_successes = 0
 percent_of_successes = []
+epsilon = 1
 for episode in range(int(NUMBER_OF_EPISODES)):
 
     # Save Q- Table
     if episode % (SAVE_EVERY_N_EPISODES) == 0:
-        print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES))
+        print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES) + "Epsilon: " + str(epsilon))
+        epsilon = np.random.choice(epsilons)
         percent_of_successes.append(num_successes/SAVE_EVERY_N_EPISODES)
         num_successes = 0
 

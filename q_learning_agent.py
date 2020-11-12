@@ -26,8 +26,8 @@ class QLearner():
         if pretrained_q_table is not None:
             self.q_table = pretrained_q_table
         else:
-            self.q_table = np.zeros([np.prod(self.env.observation_space.nvec), # Number of possible observations
-                                     self.env.action_space.n]) # Number of possible actions
+            self.q_table = np.random.rand(np.prod(self.env.observation_space.nvec), # Number of possible observations
+                                                  self.env.action_space.n) # Number of possible actions
 
         # Load Hyperparameters
         self.learning_rate = learning_rate

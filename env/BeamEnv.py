@@ -64,7 +64,7 @@ class BeamEnv(gym.Env):
         
         # Set the reward_range if you want a narrower range
         # Defaults to [-inf,+inf]
-        self.reward_range = (-1, 1)
+        self.reward_range = (-1, 100)
    
     
     def _init_plt(self):
@@ -265,7 +265,7 @@ class BeamEnv(gym.Env):
         done = True if ball_is_on_target & ball_is_stopped & beam_is_level else False
 
         # Find Reward
-        reward = 1 if done else -1
+        reward = 100 if done else -1
 
         # Find Next Observation
         obs = self._next_observation()
