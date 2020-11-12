@@ -12,11 +12,11 @@ render = False
 NUMBER_OF_EPISODES = 1e10
 SAVE_EVERY_N_EPISODES = 1000
 
-TIME_STEP = 0.01
-MAX_TIME  = 10
+TIME_STEP = 0.25
+MAX_TIME  = 15
 MAX_STEPS = MAX_TIME / TIME_STEP
-EPSILON   = 10 / MAX_STEPS
-# pretrained_q_table = np.loadtxt('pretrained_q_tables/q_table_small.csv', delimiter=',')
+EPSILON   = 1 / MAX_STEPS
+pretrained_q_table = np.loadtxt('q_table_small2.csv', delimiter=',')
 
 # Display
 table = PrettyTable(["Hyperparameters", "Settings"])
@@ -42,7 +42,7 @@ env   = BeamEnv(obs_low_bounds  = np.array([0,     0,  1.18e10, -30]),
                 TIME_STEP = TIME_STEP)
 
 agent = QLearner(env, 
-                 learning_rate = 0.20,
+                 learning_rate   = 0.01,
                  discount_factor = 0.95,
                  pretrained_q_table = None)
 
