@@ -10,7 +10,7 @@ filename = 'q_table_epsilon'
 gpu = True
 render = False
 NUMBER_OF_EPISODES = 1e10
-SAVE_EVERY_N_EPISODES = 1000
+SAVE_EVERY_N_EPISODES = 500
 
 TIME_STEP = 0.1
 MAX_TIME  = 15
@@ -50,11 +50,12 @@ agent = QLearner(env,
 num_successes = 0
 percent_of_successes = []
 epsilon = 1
+print("Starting training")
 for episode in range(int(NUMBER_OF_EPISODES)):
 
     # Save Q- Table
-    if episode % (SAVE_EVERY_N_EPISODES) == 0:
-        print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES) + "Epsilon: " + str(epsilon))
+    if (episode % (SAVE_EVERY_N_EPISODES) == 0) and (episode != 0):
+        print("Episode: " + str(episode) + " Percent of Successes: " + str(num_successes/SAVE_EVERY_N_EPISODES) + " Epsilon: " + str(epsilon))
         epsilon = np.random.choice(epsilons)
         percent_of_successes.append(num_successes/SAVE_EVERY_N_EPISODES)
         num_successes = 0
