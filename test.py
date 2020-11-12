@@ -71,7 +71,7 @@ for episode in range(int(NUMBER_OF_EPISODES)):
     count = 0
     while (not done) and (count < MAX_STEPS):
         # Choose next action (EPSILON-Greedy)
-        action = env.action_space.sample() if np.random.uniform(0, 1) < EPSILON else agent.get_action(state)
+        action = env.action_space.sample() if np.random.uniform(0, 1) < epsilon else agent.get_action(state)
 
         # Next Step
         next_state, reward, done = env.step(state, action, render = render)
